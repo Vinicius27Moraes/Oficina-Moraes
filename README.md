@@ -107,8 +107,3 @@ Pronto — o site estará público em `https://SEU-SITE.netlify.app`.
   banco durante a renderização no servidor — sem uma camada extra de API
   client-side, reduzindo o tempo até o conteúdo aparecer.
 
-## Próximos passos sugeridos
-
-- Emissão de PDF do orçamento/ordem de serviço para enviar ao cliente.
-- Notificação por e-mail/WhatsApp quando o status da ordem mudar.
-- Tela de "meu perfil" para cada usuário trocar a própria senha sem depender do master.
