@@ -10,6 +10,3 @@
 [functions]
   node_bundler = "esbuild"
   included_files = ["node_modules/.prisma/client/**"]
-
-[build.environment]
-  PRISMA_GENERATE_DATAPROXY = "false"

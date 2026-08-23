@@ -19,6 +19,11 @@ jobs:
     name: Functional checks
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      AUTH_TRUST_HOST: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,11 +45,6 @@ jobs:
 
       - name: Build application
         run: npm run build
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/oficina_ci
-          DIRECT_URL: postgresql://ci:ci@localhost:5432/oficina_ci
-          AUTH_SECRET: ci-only-secret-not-used-in-production
-          AUTH_TRUST_HOST: "true"
 
   dependency-audit:
     name: Dependency audit
