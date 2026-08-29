@@ -2,9 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches:
+      - "**"
   pull_request:
-    branches: [main, master]
+    branches:
+      - "**"
   workflow_dispatch:
 
 permissions:
@@ -14,16 +16,23 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Keep CI on the same current LTS line used by the project.
+  NODE_VERSION: "22.22.1"
+  AUTH_TRUST_HOST: "true"
+  NEXT_TELEMETRY_DISABLED: "1"
+
 jobs:
   functionality:
     name: Functional checks
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      DIRECT_URL: ${{ secrets.DIRECT_URL }}
-      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-      AUTH_TRUST_HOST: "true"
+      # The checks generate Prisma Client and compile the app; they never
+      # connect to a database. Safe placeholders keep PRs from forks runnable.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/oficina_ci
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/oficina_ci
+      AUTH_SECRET: ci-only-secret-not-valid-for-any-environment
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,17 +40,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
       - name: Validate Prisma schema
-        run: npx prisma validate
+        run: npm run prisma:validate
 
       - name: Typecheck
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
       - name: Build application
         run: npm run build
@@ -57,11 +66,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
@@ -79,12 +85,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: javascript-typescript
+          build-mode: none
 
       - name: Analyze
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
 
   secrets:
     name: Secret scan
